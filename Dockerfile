@@ -2,7 +2,7 @@ ARG ALPINE_VERSION=3.17
 FROM alpine:${ALPINE_VERSION}
 
 # Install packages
-RUN apk add --no-cache nginx
+RUN apk add --no-cache tzdata nginx
 
 STOPSIGNAL SIGQUIT
 
