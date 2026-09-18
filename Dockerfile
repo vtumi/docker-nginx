@@ -1,5 +1,18 @@
 ARG ALPINE_VERSION=3.22
 
+FROM alpine:${ALPINE_VERSION} AS base
+
+RUN apk add --no-cache \
+    tzdata \
+    nginx
+
+STOPSIGNAL SIGQUIT
+
+EXPOSE 80
+EXPOSE 443
+
+CMD ["/usr/sbin/nginx", "-g", "daemon off;"]
+
 FROM alpine:${ALPINE_VERSION} AS builder
 
 RUN apk add --no-cache \
@@ -32,22 +45,14 @@ RUN python3 templ.py && \
     -lfcgi++ -lfcgi -lpthread -lconfig -lcrypto \
     -L/usr/local/lib -l:bcrypt.a
 
-FROM alpine:${ALPINE_VERSION}
+FROM base AS auth
 
-RUN apk add --no-cache \
-    tzdata \
-    nginx \
-    spawn-fcgi
+RUN apk add --no-cache spawn-fcgi
 
 RUN mkdir -p /var/run/nginx-auth
 
 COPY --from=builder /src/nginx-auth /usr/bin/nginx-auth
 COPY root/ /
 RUN chmod +x /docker-entrypoint.sh
-
-STOPSIGNAL SIGQUIT
-
-EXPOSE 80
-EXPOSE 443
 
 ENTRYPOINT ["/docker-entrypoint.sh"]

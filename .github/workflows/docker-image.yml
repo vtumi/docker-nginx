@@ -8,6 +8,14 @@ on:
 jobs:
   docker:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: base
+            tag: latest
+          - target: auth
+            tag: auth
     steps:
       -
         name: Checkout
@@ -29,6 +37,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          target: ${{ matrix.target }}
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/nginx:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/nginx:${{ matrix.tag }}
