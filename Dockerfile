@@ -25,13 +25,13 @@ RUN apk add --no-cache \
     openssl-libs-static \
     git
 
-# Build libbcrypt as static library (no musl symbol conflicts)
+# Build only the static library, skipping manpages that require a2x.
 RUN git clone --depth 1 https://github.com/rg3/libbcrypt.git /tmp/libbcrypt && \
     cd /tmp/libbcrypt && \
-    make && \
+    make libbcrypt.a && \
     mkdir -p /usr/local/include /usr/local/lib && \
     cp bcrypt.h /usr/local/include/ && \
-    cp bcrypt.a /usr/local/lib/ && \
+    cp libbcrypt.a /usr/local/lib/ && \
     rm -rf /tmp/libbcrypt
 
 WORKDIR /src
@@ -43,7 +43,7 @@ RUN python3 templ.py && \
     server.cc templates.cc \
     -static \
     -lfcgi++ -lfcgi -lpthread -lconfig -lcrypto \
-    -L/usr/local/lib -l:bcrypt.a
+    -L/usr/local/lib -l:libbcrypt.a
 
 FROM base AS auth
 
